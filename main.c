@@ -28,9 +28,9 @@ void str_cli(FILE* fp, int sockfd)
     char sendline[MAXLINE],recvline[MAXLINE];
     int nread, nwrite;
     while (fgets(sendline, MAXLINE, fp) != NULL) {
-        nwrite = write(sockfd, sendline, strlen(sendline));
+        nwrite = send(sockfd, sendline, strlen(sendline), NULL);
         printf("nwrite:%d\n", nwrite);
-        if ((nread = read(sockfd, recvline, MAXLINE)) == 0)
+        if ((nread = recv(sockfd, recvline, MAXLINE, NULL)) == 0)
             printf("no echo\n");
         fputs(recvline, stdout);
     }
@@ -60,6 +60,7 @@ int main(int argc, char** argv) {
     }
 
     if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("connect perror");
         printf("connect error: %d: %s\n", errno, strerror(errno));
         return 1;
     }

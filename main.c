@@ -22,6 +22,20 @@
 #include <string.h>
 
 #define MAXLINE 1024
+
+void str_cli(FILE* fp, int sockfd)
+{
+    char sendline[MAXLINE],recvline[MAXLINE];
+    int nread, nwrite;
+    while (fgets(sendline, MAXLINE, fp) != NULL) {
+        nwrite = write(sockfd, sendline, strlen(sendline));
+        printf("nwrite:%d\n", nwrite);
+        if ((nread = read(sockfd, recvline, MAXLINE)) == 0)
+            printf("no echo\n");
+        fputs(recvline, stdout);
+    }
+
+}
 /*
  *
  */
@@ -49,6 +63,10 @@ int main(int argc, char** argv) {
         printf("connect error: %d: %s\n", errno, strerror(errno));
         return 1;
     }
+
+    str_cli(stdin, sockfd);
+
+/*
     while ((ret = read(sockfd, recvline, 50)) > 0) {
         recvline[ret] = 0;
         if (fputs(recvline, stdout) == EOF) {
@@ -56,6 +74,7 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
+*/
 
     if (ret < 0) {
         printf("read error");

@@ -23,11 +23,38 @@
 
 
 
-#define RECV_LINE 2048
+#define RECV_LINE 16384
 #define SEND_LINE 16384
 
 static char recvbuff[RECV_LINE];
 static char sendbuff[SEND_LINE];
+
+ssize_t my_read(int sockfd, void *buf, size_t size)
+{
+    int nread = 0;
+    int nleft = size;
+    unsigned char *ptr = (char *)buf;
+
+    while (nleft > 0) {
+
+        nread = recv(sockfd, ptr, nleft, MSG_DONTWAIT);
+
+        if (nread <= 0) {
+            if (errno == EAGAIN) {
+                continue;
+            }
+            perror("inj recv error");
+        }
+
+        if (nread == size) {
+            printf("nread : %d bytes\n", nread);
+        }
+
+        nleft -= nread;
+        ptr += nread;
+    }
+    return size - nleft;
+}
 
 size_t my_write(int sockfd, const void *buf, size_t size)
 {
@@ -47,9 +74,9 @@ size_t my_write(int sockfd, const void *buf, size_t size)
             }
             perror("inj send error");
         }
- //       if (nwrite != size) {
- //           printf("nwrite : %d\n", nwrite);
-//        }
+        if (nwrite == size) {
+            printf("nwrite : %d\n", nwrite);
+        }
         nleft -= nwrite;
         ptr += nwrite;
     }
@@ -60,10 +87,21 @@ void io_loop(int sockfd)
 {
     int total = 0;
     int nwrite = 0;
+    int nread = 0;
     while(1) {
+
         nwrite = my_write(sockfd, sendbuff, sizeof(sendbuff));
+/*
         total += nwrite;
         printf("total : %d bytes\n", total);
+*/
+
+        nread = my_read(sockfd, recvbuff, sizeof(recvbuff));
+
+/*
+        total += nread;
+        printf("total : %d bytes\n", total);
+*/
     }
 }
 
